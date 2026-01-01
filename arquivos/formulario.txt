@@ -1,0 +1,9 @@
+Qual o nome e sobrenome do pet?
+Qual o tipo do pet (Cachorro/Gato)?
+Qual o sexo do animal?
+Qual endereço em que ele foi encontrado (Número, Cidade e Rua separados por virgula)?
+Qual a idade aproximada do pet (Apenas numeros, pontos ou virgulas)?
+Qual o peso aproximado do pet (Apenas numeros, pontos ou virgulas)?
+Qual a raça do pet?
+Qual o nome do tutor?
+O pet tem algum problema de saúde?

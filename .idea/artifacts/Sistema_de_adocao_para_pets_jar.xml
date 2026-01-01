@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Sistema de adocao para pets:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Sistema_de_adocao_para_pets_jar</output-path>
+    <root id="archive" name="Sistema de adocao para pets.jar">
+      <element id="module-output" name="Sistema de adocao para pets" />
+    </root>
+  </artifact>
+</component>

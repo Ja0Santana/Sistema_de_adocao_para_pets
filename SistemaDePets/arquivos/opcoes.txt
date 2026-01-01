@@ -1,0 +1,6 @@
+Cadastrar novo pet
+Alterar os dados do pet do cadastro
+Deletar um pet cadastrado
+Listar todos os pets cadastrados
+Listar pets por algum critério (nome, tipo, sexo, endereço, idade, peso ou raça)
+Sair

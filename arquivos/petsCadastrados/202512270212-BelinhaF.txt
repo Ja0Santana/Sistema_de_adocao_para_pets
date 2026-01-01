@@ -1,0 +1,9 @@
+1 - Belinha F
+2 - CACHORRO
+3 - FEMEA
+4 - 34, Salvador, Centro, 
+5 - 4 anos
+6 - 3 kg
+7 - Pinscher
+8 - [EXTRA - PERGUNTA NOVA ADICIONADA] - Carla
+9 - [EXTRA - PERGUNTA NOVA ADICIONADA] - Nao
