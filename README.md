@@ -1,12 +1,9 @@
-<h1>
   🐾 Sistema de Adoção de Pets
 </h1>
 
-<p>
   Um sistema de gerenciamento de adoções via console, focado em organização, persistência de dados e usabilidade.
 </p>
 
-<p>
   <img src="https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 21">
   <img src="https://img.shields.io/badge/IDE-IntelliJ_IDEA-000000?style=for-the-badge&logo=intellij-idea&logoColor=white" alt="IntelliJ IDEA">
   <img src="https://img.shields.io/badge/Arquitetura-MVC-blue?style=for-the-badge" alt="MVC Architecture">

@@ -611,9 +611,6 @@ public class Controlador {
     private Pet converterEmPet(Path path) {
         List<String> pet;
         try {
-            pet = Files.readAllLines(path).stream()
-                    .filter(linha -> !linha.trim().isEmpty())
-                    .toList();
         }catch (IOException e) {
             throw new RuntimeException("Erro ao ler o arquivo do Pet: " + path, e);
         }
@@ -629,9 +626,7 @@ public class Controlador {
         String linhaEndereco = extrairValor(pet.get(3));
         String[] endPartes = linhaEndereco.split(",");
         String valorIdade = extrairValor(pet.get(4));
-        String idade = (valorIdade.equals(".") || valorIdade.isEmpty()) ? "." : valorIdade.replaceAll("[^0-9.,]", "");
         String valorPeso = extrairValor(pet.get(5));
-        String peso = (valorPeso.equals(".") || valorPeso.isEmpty()) ? "." : valorPeso.replaceAll("[^0-9.,]", "");
         String raca = extrairValor(pet.get(6));
         Endereco endereco = new Endereco(deixarSeguro(endPartes, 0), deixarSeguro(endPartes, 1), deixarSeguro(endPartes, 2));
         Pet animal = criarPets(nome, sobrenome, tipo, sexo, idade, peso, raca, endereco);
@@ -654,7 +649,6 @@ public class Controlador {
         if (valor.endsWith(",")) {
             valor = valor.substring(0, valor.length() - 1);
         }
-        return (valor.equals("NÃO INFORMADO") || valor.isEmpty()) ? "." : valor;
     }
 
     private String deixarSeguro(String[] partes, int posicao) {
