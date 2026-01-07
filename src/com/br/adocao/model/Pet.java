@@ -98,6 +98,9 @@ public class Pet {
         }
         try {
             double idadeValor = Double.parseDouble(idadeFormatada);
+            if (idadeValor < 0 || idadeValor > 30) {
+                throw new IdadeInvalidaException("Idade inválida! A idade deve estar entre 0 e 25 anos.");
+            }
             this.idade = idade + " anos";
         } catch (NumberFormatException e) {
             throw new IdadeInvalidaException("Idade inválida! Formato numérico incorreto.");
