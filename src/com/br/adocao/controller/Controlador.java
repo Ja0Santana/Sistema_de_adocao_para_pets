@@ -629,9 +629,9 @@ public class Controlador {
         String linhaEndereco = extrairValor(pet.get(3));
         String[] endPartes = linhaEndereco.split(",");
         String valorIdade = extrairValor(pet.get(4));
-        String idade = (valorIdade.equals(".") || valorIdade.isEmpty()) ? "." : valorIdade.replaceAll("[^0-9]", "");
+        String idade = (valorIdade.equals(".") || valorIdade.isEmpty()) ? "." : valorIdade.replaceAll("[^0-9.,]", "");
         String valorPeso = extrairValor(pet.get(5));
-        String peso = (valorPeso.equals(".") || valorPeso.isEmpty()) ? "." : valorPeso.replaceAll("[^0-9.]", "");
+        String peso = (valorPeso.equals(".") || valorPeso.isEmpty()) ? "." : valorPeso.replaceAll("[^0-9.,]", "");
         String raca = extrairValor(pet.get(6));
         Endereco endereco = new Endereco(deixarSeguro(endPartes, 0), deixarSeguro(endPartes, 1), deixarSeguro(endPartes, 2));
         Pet animal = criarPets(nome, sobrenome, tipo, sexo, idade, peso, raca, endereco);
