@@ -180,7 +180,7 @@ public class Pet {
     public String resumo() {
 
         List<String> informacoesTxt;
-        String informacoesReduzidas = "";
+        String informacoesReduzidas;
         String informacoesFormatadas = "";
         try {
             informacoesTxt = Files.readAllLines(getCaminhoArquivo());
