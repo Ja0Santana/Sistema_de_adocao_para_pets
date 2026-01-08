@@ -2,6 +2,7 @@ package com.br.adocao.controller;
 
 import com.br.adocao.exception.AnimalInvalidoException;
 import com.br.adocao.exception.OpcaoInvalidaException;
+import com.br.adocao.model.ArquivosEPerguntas;
 import com.br.adocao.model.Endereco;
 import com.br.adocao.model.Pet;
 import com.br.adocao.model.enums.Sexo;
@@ -18,170 +19,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Controlador {
+public class PetController {
     private static final Scanner sc = new Scanner(System.in);
-    private static final Path FORMULARIO = Path.of("arquivos/formulario.txt");
-    private static final Path OPCOES = Path.of("arquivos/opcoes.txt");
-    private static final Path ARQUIVO_PETS = Path.of("arquivos/petsCadastrados");
     private static final AtomicInteger contador = new AtomicInteger(1);
+    private final ArquivosEPerguntas arquivosEPerguntas = new ArquivosEPerguntas();
 
-    public void inicio () {
-        int resposta;
-        do {
-            System.out.println("-----------------------------------------------------------------------------------");
-            System.out.println("1 - Iniciar sistema para cadastro de PETS");
-            System.out.println("2 - Iniciar sistema para alterar formulario");
-            System.out.println("3 - Encerrar programa");
-            System.out.print("R: ");
-            resposta = sc.nextInt();
-            sc.nextLine();
-            switch (resposta) {
-                case 1:
-                    sistemaDePets();
-                    break;
-                case 2:
-                    alterarFormulario();
-                    break;
-            }
-            if (resposta > 3) System.out.println("Digite uma opção válida!");
-        }while (resposta != 3);
-    }
-
-    private void alterarFormulario () {
-        int resposta;
-        do {
-            System.out.println("-----------------------------------------------------------------------------------");
-            System.out.println("1 - Criar nova pergunta");
-            System.out.println("2 - Alterar pergunta existente");
-            System.out.println("3 - Excluir pergunta existente");
-            System.out.println("4 - Voltar ao menu principal");
-            resposta = sc.nextInt();
-            sc.nextLine();
-            switch (resposta) {
-                case 1:
-                    criarNovaPergunta();
-                    break;
-                case 2:
-                    alterarPergunta();
-                    break;
-                case 3:
-                    excluirPergunta();
-                    break;
-            }
-            if (resposta > 4) System.out.println("Digite uma opção válida!");
-        }while (resposta != 4);
-    }
-
-    private void criarNovaPergunta() {
-        List<String> perguntas = carregarFormulario();
-        System.out.println("----------------------------------------------");
-        System.out.println("Digite a sua nova pergunta:");
-        System.out.print("R: ");
-        String pergunta = sc.nextLine();
-        if (perguntas.contains(pergunta)) {
-            System.out.println("Pergunta ja existe no arquivo!");
-            return;
-        }
-        perguntas.add(pergunta);
+    public void sistemaDePets(){
         try {
-            Files.write(FORMULARIO, perguntas);
-        }catch (IOException e) {
-            System.out.println("Não foi possivel salvar o arquivo");
-        }
-        System.out.println("\nPergunta adicionada!");
-    }
-
-    private void alterarPergunta() {
-        if(!(verificarVazio())) {
-            List<String> perguntas = carregarFormulario();
-            System.out.println("Qual pergunta voce deseja alterar?");
-            listarPerguntasDisponiveis();
-            int resposta = sc.nextInt();
-            sc.nextLine();
-            if (isIndicePerguntaValido(resposta)) {
-                System.out.println("Digite a pergunta modificada:");
-                System.out.print("R: ");
-                String perguntaMod = sc.nextLine();
-                perguntas.set((resposta + 6), perguntaMod);
-                try {
-                    Files.write(FORMULARIO, perguntas);
-                } catch (IOException e) {
-                    System.out.println("Impossivel ler o arquivo");
-                }
-                System.out.println("Pergunta modificada!");
-            }
-        }
-    }
-
-    private void excluirPergunta() {
-        if(!(verificarVazio())) {
-            System.out.println("Qual pergunta voce quer excluir?");
-            listarPerguntasDisponiveis();
-            int resposta = sc.nextInt();
-            sc.nextLine();
-            if(isIndicePerguntaValido(resposta)) {
-                List<String> perguntasBrutas = carregarPerguntasBrutas();
-                System.out.println("Deseja excluir e pergunta " + resposta + "?(Sim) (Nao)");
-                String validacao = sc.nextLine();
-                if (!(validacao.equalsIgnoreCase("sim"))) {
-                    System.out.println("\nCancelando...");
-                    return;
-                }
-                perguntasBrutas.set((resposta + 6), "");
-                List<String> perguntasFinais = perguntasBrutas.stream().filter(pergunta -> !(pergunta.trim().isEmpty())).toList();
-                try {
-                    Files.write(FORMULARIO, perguntasFinais);
-                } catch (IOException e) {
-                    System.out.println("Impossivel acessar o arquivo!");
-                }
-                System.out.println("\nPergunta excluida!");
-            }
-        }
-    }
-
-    private boolean verificarVazio () {
-        System.out.println("----------------------------------------------");
-        if (carregarPerguntasValidas().isEmpty()) {
-            System.out.println("Nenhuma pergunta adicionada!");
-            return true;
-        }
-        return false;
-    }
-
-    private List<String> carregarPerguntasBrutas () {
-        return carregarFormulario();
-    }
-
-    private List<String> carregarPerguntasValidas () {
-        return carregarPerguntasBrutas().stream().skip(7).toList();
-    }
-
-    private void listarPerguntasDisponiveis () {
-        contador.set(1);
-        carregarPerguntasValidas().forEach(pergunta -> System.out.println(contador.getAndIncrement() + " - " + pergunta));
-        System.out.print("R: ");
-    }
-
-    private boolean isIndicePerguntaValido (int resposta) {
-        if (resposta > carregarPerguntasValidas().size()) {
-            System.out.println("Digite uma opção válida!");
-            return false;
-        }
-        if (resposta <= 0) {
-            System.out.println("Digite uma opção válida!");
-            return false;
-        }
-        return true;
-    }
-
-    private void sistemaDePets(){
-        try {
-            List<String> opcoes = Files.readAllLines(OPCOES);
+            List<String> opcoes = Files.readAllLines(ArquivosEPerguntas.OPCOES);
             String opcao;
             do {
                 do {
                     System.out.println("-----------------------------------------------------------------------------------");
-                    System.out.println("                           SISTEMA DE CADASTRO DE PETS");
+                    System.out.println("                                CADASTRO DE PETS                                   ");
                     System.out.println("----------------------------Selecione a opcao desejada-----------------------------");
                     contador.set(1);
                     opcoes.forEach(pergunta -> System.out.println(contador.getAndIncrement() + " - " + pergunta));
@@ -221,7 +71,7 @@ public class Controlador {
 
     private void lerFormulario() throws IOException {
         try{
-            List<String> perguntas = carregarFormulario();
+            List<String> perguntas = arquivosEPerguntas.carregarFormulario();
             System.out.println("\n---Preencha o formulário---");
             contador.set(1);
             perguntas.forEach(pergunta -> System.out.println(contador.getAndIncrement() + " - " + pergunta));
@@ -229,16 +79,6 @@ public class Controlador {
         }catch (IOException e) {
             System.out.println("Impossivel ler o arquivo");
         }
-    }
-
-    private List<String> carregarFormulario (){
-        List<String> perguntas = new ArrayList<>();
-        try{
-            perguntas = Files.readAllLines(FORMULARIO);
-        }catch (IOException e) {
-            System.out.println("Impossível ler o arquivo");
-        }
-        return perguntas;
     }
 
     private void responderFormulario(int quantidadePerguntas) throws IOException {
@@ -299,11 +139,11 @@ public class Controlador {
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
                 String dataFormatada = formatter.format(data);
                 String nomeDoArquivo = dataFormatada + "-" + pet.getNome() + pet.getSobrenome() + ".txt";
-                caminhoFinal = ARQUIVO_PETS.resolve(nomeDoArquivo);
+                caminhoFinal = ArquivosEPerguntas.ARQUIVO_PETS.resolve(nomeDoArquivo);
                 pet.setCaminhoArquivo(caminhoFinal);
             }
-            if (Files.notExists(ARQUIVO_PETS)) {
-                Files.createDirectories(ARQUIVO_PETS);
+            if (Files.notExists(ArquivosEPerguntas.ARQUIVO_PETS)) {
+                Files.createDirectories(ArquivosEPerguntas.ARQUIVO_PETS);
             }
             if (Files.notExists(caminhoFinal)) {
                 Files.createFile(caminhoFinal);
@@ -547,7 +387,7 @@ public class Controlador {
         System.out.println("Por qual idade voce deseja buscar? (Ex: 3 para buscar acima de 3 anos)");
         String idadeAnimal = sc.nextLine();
         return pets.stream().filter(pet -> {
-            String idadeDoPetLimpa = pet.getIdade().replaceAll("[^0-9]", "");
+            String idadeDoPetLimpa = pet.getIdade().replaceAll("[^0-9.]", "");
             if (!idadeDoPetLimpa.matches("[0-9.]+")) return false;
             try {
                 return Double.parseDouble(idadeDoPetLimpa) > Double.parseDouble(idadeAnimal);
@@ -591,10 +431,10 @@ public class Controlador {
     }
 
     private List<Pet> carregarPets() {
-        if (Files.notExists(ARQUIVO_PETS)) {
+        if (Files.notExists(ArquivosEPerguntas.ARQUIVO_PETS)) {
             return new ArrayList<>();
         }
-        try(Stream<Path> caminhos = Files.list(ARQUIVO_PETS)) {
+        try(Stream<Path> caminhos = Files.list(ArquivosEPerguntas.ARQUIVO_PETS)) {
             return caminhos.filter(Files::isRegularFile)
                     .filter(p -> p.toString().endsWith(".txt"))
                     .map(this::converterEmPet)
@@ -631,9 +471,9 @@ public class Controlador {
         String linhaEndereco = extrairValor(pet.get(3));
         String[] endPartes = linhaEndereco.split(",");
         String valorIdade = extrairValor(pet.get(4));
-        String idade = (valorIdade.equals(".") || valorIdade.isEmpty()) ? "." : valorIdade.replaceAll("[^0-9.,]", "");
+        String idade = (valorIdade.equals(".") || valorIdade.isEmpty()) ? "." : valorIdade.replaceAll("[^0-9.,]", "").replace(",", ".");
         String valorPeso = extrairValor(pet.get(5));
-        String peso = (valorPeso.equals(".") || valorPeso.isEmpty()) ? "." : valorPeso.replaceAll("[^0-9.,]", "");
+        String peso = (valorPeso.equals(".") || valorPeso.isEmpty()) ? "." : valorPeso.replaceAll("[^0-9.,]", "").replace(",", ".");
         String raca = extrairValor(pet.get(6));
         Endereco endereco = new Endereco(deixarSeguro(endPartes, 0), deixarSeguro(endPartes, 1), deixarSeguro(endPartes, 2));
         Pet animal = criarPets(nome, sobrenome, tipo, sexo, idade, peso, raca, endereco);
