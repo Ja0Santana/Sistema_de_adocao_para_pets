@@ -1,5 +1,6 @@
 package com.br.adocao.controller;
 
+import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class MenuPrincipal {
@@ -15,17 +16,20 @@ public class MenuPrincipal {
             System.out.println("2 - Iniciar sistema para alterar formulario");
             System.out.println("3 - Encerrar programa");
             System.out.print("R: ");
-            resposta = sc.nextInt();
-            sc.nextLine();
-            switch (resposta) {
-                case 1:
-                    PetController.sistemaDePets();
-                    break;
-                case 2:
-                    FormularioController.informarMenu();
-                    break;
+            try {
+                resposta = sc.nextInt();
+                sc.nextLine();
+                switch (resposta) {
+                    case 1 -> PetController.sistemaDePets();
+                    case 2 -> FormularioController.informarMenu();
+                }
+                if (resposta > 3) System.out.println("Digite uma opção válida!");
+            }catch (InputMismatchException e) {
+                System.out.println("Digite apenas números!");
+                sc.nextLine();
+                resposta = 0;
             }
-            if (resposta > 3) System.out.println("Digite uma opção válida!");
         } while (resposta != 3);
+        sc.close();
     }
 }
