@@ -6,6 +6,7 @@ import com.br.adocao.model.Endereco;
 import com.br.adocao.model.Pet;
 import com.br.adocao.model.enums.Sexo;
 import com.br.adocao.model.enums.TipoPet;
+import com.br.adocao.model.enums.Criterios;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -27,7 +28,7 @@ public class Controlador {
     public void inicio () {
         int resposta;
         do {
-            System.out.println("----------------------------------------------");
+            System.out.println("-----------------------------------------------------------------------------------");
             System.out.println("1 - Iniciar sistema para cadastro de PETS");
             System.out.println("2 - Iniciar sistema para alterar formulario");
             System.out.println("3 - Encerrar programa");
@@ -49,7 +50,7 @@ public class Controlador {
     private void alterarFormulario () {
         int resposta;
         do {
-            System.out.println("----------------------------------------------");
+            System.out.println("-----------------------------------------------------------------------------------");
             System.out.println("1 - Criar nova pergunta");
             System.out.println("2 - Alterar pergunta existente");
             System.out.println("3 - Excluir pergunta existente");
@@ -179,9 +180,9 @@ public class Controlador {
             String opcao;
             do {
                 do {
-                    System.out.println("----------------------------------------------");
-                    System.out.println("         SISTEMA DE CADASTRO DE PETS");
-                    System.out.println("----------Selecione a opcao desejada----------");
+                    System.out.println("-----------------------------------------------------------------------------------");
+                    System.out.println("                           SISTEMA DE CADASTRO DE PETS");
+                    System.out.println("----------------------------Selecione a opcao desejada-----------------------------");
                     contador.set(1);
                     opcoes.forEach(pergunta -> System.out.println(contador.getAndIncrement() + " - " + pergunta));
                     System.out.print("R: ");
@@ -507,15 +508,14 @@ public class Controlador {
     }
 
     private List<Pet> criteriosUnicos (String criterios, List<Pet> pets) {
-        return switch (criterios.toUpperCase().trim()) {
-            case "NOME" -> listarPetPorNome(pets);
-            case "TIPO" -> listarPetPorTipo(pets);
-            case "SEXO" -> listarPetPorSexo(pets);
-            case "IDADE" -> listarPetPorIdade(pets);
-            case "PESO" -> listarPetPorPeso(pets);
-            case "ENDEREÇO" -> listarPetPorEndereco(pets);
-            case "RAÇA" -> listarPetPorRaca(pets);
-            default -> new ArrayList<>();
+        return switch (Criterios.valueOf(criterios.toUpperCase())) {
+            case Criterios.NOME -> listarPetPorNome(pets);
+            case Criterios.TIPO -> listarPetPorTipo(pets);
+            case Criterios.SEXO -> listarPetPorSexo(pets);
+            case Criterios.IDADE -> listarPetPorIdade(pets);
+            case Criterios.PESO -> listarPetPorPeso(pets);
+            case Criterios.ENDERECO -> listarPetPorEndereco(pets);
+            case Criterios.RACA -> listarPetPorRaca(pets);
         };
     }
 
@@ -579,6 +579,7 @@ public class Controlador {
 
     private void listarPets() {
         System.out.println("\nTodos os pets cadastrados:");
+        System.out.println("-----------------------------------------------------------------------------------");
         List<Pet> pets = carregarPets();
         if (pets.isEmpty()) {
             System.out.println("Nenhum pet cadastrado ou erro ao carregar.");
@@ -630,9 +631,9 @@ public class Controlador {
         String linhaEndereco = extrairValor(pet.get(3));
         String[] endPartes = linhaEndereco.split(",");
         String valorIdade = extrairValor(pet.get(4));
-        String idade = (valorIdade.equals(".") || valorIdade.isEmpty()) ? "." : valorIdade.replaceAll("[^0-9]", "");
+        String idade = (valorIdade.equals(".") || valorIdade.isEmpty()) ? "." : valorIdade.replaceAll("[^0-9.,]", "");
         String valorPeso = extrairValor(pet.get(5));
-        String peso = (valorPeso.equals(".") || valorPeso.isEmpty()) ? "." : valorPeso.replaceAll("[^0-9.]", "");
+        String peso = (valorPeso.equals(".") || valorPeso.isEmpty()) ? "." : valorPeso.replaceAll("[^0-9.,]", "");
         String raca = extrairValor(pet.get(6));
         Endereco endereco = new Endereco(deixarSeguro(endPartes, 0), deixarSeguro(endPartes, 1), deixarSeguro(endPartes, 2));
         Pet animal = criarPets(nome, sobrenome, tipo, sexo, idade, peso, raca, endereco);
