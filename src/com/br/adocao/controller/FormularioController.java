@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class FormularioController {
     private static final int QUANTIDADE_PERGUNTAS_INICIAIS = 6;

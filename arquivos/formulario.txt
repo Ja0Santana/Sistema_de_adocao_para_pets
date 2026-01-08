@@ -5,5 +5,5 @@ Qual endereço em que ele foi encontrado (Número, Cidade e Rua separados por vi
 Qual a idade aproximada do pet (Apenas numeros, pontos ou virgulas)?
 Qual o peso aproximado do pet (Apenas numeros, pontos ou virgulas)?
 Qual a raça do pet?
-Qual o nome do tutor?
+Qual o nome do(a) tutor(a)?
 O pet tem algum problema de saúde?
