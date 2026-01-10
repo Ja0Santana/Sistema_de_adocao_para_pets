@@ -358,6 +358,7 @@ public class PetController {
             System.out.println("Nenhum pet encontrado com esses critérios.");
         } else {
             contador.set(1);
+            System.out.println("\nPets encontrados:");
             resultado.forEach(pet -> System.out.println("Pet " + contador.getAndIncrement() + ": " + pet.resumo()));
         }
     }
