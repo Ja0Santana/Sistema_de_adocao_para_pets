@@ -1,32 +1,37 @@
 package com.br.adocao.controller;
 
-import com.br.adocao.exception.AnimalInvalidoException;
 import com.br.adocao.exception.OpcaoInvalidaException;
+import com.br.adocao.interfaces.MenuRepository;
+import com.br.adocao.interfaces.PetRepository;
 import com.br.adocao.model.ArquivosEPerguntas;
 import com.br.adocao.model.Endereco;
 import com.br.adocao.model.Pet;
 import com.br.adocao.model.enums.Sexo;
 import com.br.adocao.model.enums.TipoPet;
 import com.br.adocao.model.enums.Criterios;
+import com.br.adocao.exception.ArquivoVazioOuInvalidoException;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class PetController {
-    private static final Scanner sc = new Scanner(System.in);
+    private static Scanner sc;
     private static final AtomicInteger contador = new AtomicInteger(1);
     private final ArquivosEPerguntas arquivosEPerguntas = new ArquivosEPerguntas();
+    private final PetRepository petRepository;
+    private final MenuRepository menuRepository;
+    private final int TOTAL_DE_PERGUNTAS = 7;
+
+    public PetController(PetRepository petRepository, MenuRepository menuRepository) {
+        this.menuRepository = menuRepository;
+        this.petRepository = petRepository;
+        sc = new Scanner(System.in);
+    }
 
     public void sistemaDePets(){
         try {
-            List<String> opcoes = Files.readAllLines(ArquivosEPerguntas.OPCOES);
+            List<String> opcoes = menuRepository.carregarOpcoesMenu();
             String opcao;
             do {
                 do {
@@ -65,7 +70,7 @@ public class PetController {
         }catch (OpcaoInvalidaException e) {
             System.out.println("Opção inválida, digite novamente");
         }catch (IOException e) {
-            System.out.println("Impossivel ler o arquivo");
+            System.out.println("Erro ao processar a informação");
         }
     }
 
@@ -77,7 +82,7 @@ public class PetController {
             perguntas.forEach(pergunta -> System.out.println(contador.getAndIncrement() + " - " + pergunta));
             responderFormulario(perguntas.size());
         }catch (IOException e) {
-            System.out.println("Impossivel ler o arquivo");
+            System.out.println("Erro ao processar a informação");
         }
     }
 
@@ -98,11 +103,11 @@ public class PetController {
             String[] partesNomePet = partes[0].split("\\s+");
             Endereco endereco = criarEndereco(partesEnd[0], partesEnd[1], partesEnd[2]);
             Pet animal = criarPets(partesNomePet[0], partesNomePet[1], partes[1], partes[2], partes[4], partes[5], partes[6], endereco);
-            salvarPets(animal, partes);
+            salvarPets(animal);
         }catch (ArrayIndexOutOfBoundsException e) {
             System.out.println("Todas as perguntas precisam ser respondidas!");
         }catch (IOException e) {
-            System.out.println("Impossivel ler o arquivo!");
+            System.out.println("Erro ao processar a informação!");
         }
     }
 
@@ -115,100 +120,109 @@ public class PetController {
             return new Pet(nome, sobrenome, tipo, sexo, idade, peso, raca, endereco);
         }catch (Exception e) {
             System.out.println(e.getMessage());
+            return null;
         }
-        return null;
     }
 
-    private void salvarPets(Pet pet, String[] respostas) throws IOException {
-        List<String> animal = new ArrayList<>();
-        List<String> respostasAtt;
-        if (pet != null) {
-            if(respostas.length > 7) {
-                contador.set(8);
-                respostasAtt = Arrays.stream(respostas).skip(7).map(resposta -> contador.getAndIncrement() + " - [EXTRA - PERGUNTA NOVA ADICIONADA] - " + resposta).toList();
-                animal.add(pet.toString());
-                animal.addAll(respostasAtt);
-            }else {
-                animal.add(pet.toString());
-            }
-            Path caminhoFinal;
-            if(pet.getCaminhoArquivo() != null) {
-                caminhoFinal = pet.getCaminhoArquivo();
-            }else{
-                LocalDateTime data = LocalDateTime.now();
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
-                String dataFormatada = formatter.format(data);
-                String nomeDoArquivo = dataFormatada + "-" + pet.getNome() + pet.getSobrenome() + ".txt";
-                caminhoFinal = ArquivosEPerguntas.ARQUIVO_PETS.resolve(nomeDoArquivo);
-                pet.setCaminhoArquivo(caminhoFinal);
-            }
-            if (Files.notExists(ArquivosEPerguntas.ARQUIVO_PETS)) {
-                Files.createDirectories(ArquivosEPerguntas.ARQUIVO_PETS);
-            }
-            if (Files.notExists(caminhoFinal)) {
-                Files.createFile(caminhoFinal);
-            }
-            Files.write(caminhoFinal, animal);
+    private void salvarPets(Pet pet) throws IOException {
+        try{
+            petRepository.salvar(pet);
             System.out.println("\nPet criado!");
+        }catch (Exception e) {
+            System.out.println("Erro ao processar a informação!");
         }
+
     }
 
     private void editarInformacoesPets() throws IOException {
-        String[] respostas = new String[50];
         listarPets();
         System.out.println("\nQual dos pets cadastrados voce quer editar (Digite o número dele)?");
-        List<Pet> animais = carregarPets();
+        List<Pet> pets = List.of();
+        try{
+            pets = petRepository.carregarPets();
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
         System.out.print("R: ");
         int escolhaPet = sc.nextInt();
         sc.nextLine();
-        List<String> informacoes;
-        Path caminhoOriginal;
-        Pet animalAtual;
-        try {
-            animalAtual = animais.get(escolhaPet - 1);
-            caminhoOriginal = animalAtual.getCaminhoArquivo();
-            informacoes = Files.readAllLines(caminhoOriginal);
-            informacoes.forEach(System.out::println);
-        }catch (IndexOutOfBoundsException e) {
-            throw new AnimalInvalidoException("Digite um numero de animal válido!");
-        }catch (IOException e) {
-            throw new IOException("Erro ao ler o arquivo");
+        Pet animalAtual = pets.get(escolhaPet - 1);
+        animalAtual.toString();
+        List<String> extras = animalAtual.getInformacoesExtras();
+        if (extras != null || !extras.isEmpty()) {
+            for (int i = 0; i < extras.size(); i++) {
+                System.out.println((i+8) + " - " + extras.get(i));
+            }
         }
-        System.out.println("Qual informação deseja alterar?");
+        System.out.println(animalAtual);
+        System.out.print("Qual informação deseja alterar?\nR: ");
         int escolhaInfo = sc.nextInt();
         sc.nextLine();
-        if(escolhaInfo > informacoes.size() || escolhaInfo <= 0) {
+        if(escolhaInfo <= 0) {
             throw new RuntimeException("Digite uma opção válida!");
         }
-        switch (escolhaInfo) {
-            case 1:
-                modificarNome(animalAtual);
-                break;
-            case 2:
-                modificarTipo(animalAtual);
-                break;
-            case 3:
-                modificarSexo(animalAtual);
-                break;
-            case 4:
-                modificarEndereco(animalAtual);
-                break;
-            case 5:
-                modificarIdade(animalAtual);
-                break;
-            case 6:
-                modificarPeso(animalAtual);
-                break;
-            case 7:
-                modificarRaca(animalAtual);
-                break;
+        if(escolhaInfo <= TOTAL_DE_PERGUNTAS) {
+            switch (escolhaInfo) {
+                case 1:
+                    modificarNome(animalAtual);
+                    break;
+                case 2:
+                    modificarTipo(animalAtual);
+                    break;
+                case 3:
+                    modificarSexo(animalAtual);
+                    break;
+                case 4:
+                    modificarEndereco(animalAtual);
+                    break;
+                case 5:
+                    modificarIdade(animalAtual);
+                    break;
+                case 6:
+                    modificarPeso(animalAtual);
+                    break;
+                case 7:
+                    modificarRaca(animalAtual);
+                    break;
+            }
+        } else {
+            int indiceReal = escolhaInfo - 8;
+            if(indiceReal < extras.size()) {
+                modificarAtributoBonus(animalAtual, indiceReal);
+            }else{
+                System.out.println("Opção inválida!");
+                return;
+            }
         }
-        if (escolhaInfo > 7) {
-            modificarAtributoBonus(animalAtual, informacoes, escolhaInfo);
+        try {
+            petRepository.salvar(animalAtual);
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void modificarAtributoBonus (Pet pet, int indice) {
+        if (indice < 0 || indice >= (pet.getInformacoesExtras().size())) {
+            System.out.println("Opção inválida!");
             return;
         }
-        salvarPets(animalAtual, respostas);
-        System.out.println("Informação atualizada com sucesso!");
+        System.out.println("Qual a informação nova?");
+        String novaInformacao = sc.nextLine();
+        List<String> linhasExtras = pet.getInformacoesExtras();
+        String linhaAntiga = pet.getInformacoesExtras().get(indice);
+        try{
+            int ultimoSeparador = linhaAntiga.lastIndexOf(" - ");
+            if(ultimoSeparador != -1) {
+                String prefixoDaPergunta = linhaAntiga.substring(0, ultimoSeparador);
+                String linhaAtualizada = prefixoDaPergunta + " - " + novaInformacao;
+                linhasExtras.set(indice, linhaAtualizada);
+            }else {
+                linhasExtras.set(indice, novaInformacao);
+            }
+        }catch(Exception e){
+            System.out.println("Erro ao processar a informação!");
+            linhasExtras.set(indice, novaInformacao);
+        }
     }
 
     private void modificarNome(Pet pet) {
@@ -276,27 +290,23 @@ public class PetController {
         System.out.println("Endereço atualizado para: " + pet.getEndereco());
     }
 
-    private void modificarAtributoBonus (Pet pet, List<String> atributos, int indice) {
-        System.out.println("Qual a informação nova?");
-        String atributo = sc.nextLine();
-        String[] atributosPartes = atributos.get(indice-1).split(" - ");
-        String novoAtributo = atributosPartes[0] +" - " + atributosPartes[1] + " - " + atributosPartes[2] + " - " + atributo;
-        atributos.set(indice-1, novoAtributo);
-        try{
-            Files.write(pet.getCaminhoArquivo(), atributos);
-            System.out.println("Informação modificada com sucesso!");
-        }catch(IOException e){
-            System.out.println("Impossivel ler o arquivo!");
-        }
-    }
-
     private void deletarPet () {
-        List<Pet> pets = carregarPets();
         System.out.println("\nQual pet voce deseja apagar?");
-        listarPets();
+        try {
+            listarPets();
+        } catch (ArquivoVazioOuInvalidoException e) {
+            System.out.println(e.getMessage());
+            return;
+        }
         System.out.print("R: ");
-        int petSelecionado = sc.nextInt();
-        Pet animalSelecionado = pets.get(petSelecionado - 1);
+        int escolhaPet = sc.nextInt();
+        int petEscolhido = escolhaPet - 1;
+        Pet animalSelecionado = null;
+        try {
+            animalSelecionado = petRepository.carregarPets().get(petEscolhido);
+        }catch (IOException e){
+            System.out.println(e.getMessage());
+        }
         sc.nextLine();
         System.out.println("Pet: "+ animalSelecionado.resumo() +"\nDeseja confirmar a escolha (Sim) (Não)?");
         System.out.print("R: ");
@@ -309,10 +319,10 @@ public class PetController {
     }
 
     private void confirmarDeletarPet(Pet pet) {
-        try {
-            Files.deleteIfExists(pet.getCaminhoArquivo());
-        }catch (IOException e) {
-            System.out.println("Não foi possível apagar o arquivo do pet!");
+        try{
+            petRepository.deletar(pet);
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
         }
         System.out.println("Pet deletado com sucesso!");
     }
@@ -326,7 +336,12 @@ public class PetController {
     }
 
     private void selecionarCriterios(int tamanho, String[] criteriosDiv) {
-        List<Pet> pets = carregarPets();
+        List<Pet> pets = new ArrayList<>();
+        try {
+            pets = petRepository.carregarPets();
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
         if (tamanho > 2) {
             System.out.println("Apenas dois criterios de parâmetro!");
             return;
@@ -418,91 +433,27 @@ public class PetController {
     }
 
     private void listarPets() {
+        List<Pet> pets= new ArrayList<>();
         System.out.println("\nTodos os pets cadastrados:");
         System.out.println("-----------------------------------------------------------------------------------");
-        List<Pet> pets = carregarPets();
-        if (pets.isEmpty()) {
-            System.out.println("Nenhum pet cadastrado ou erro ao carregar.");
-            return;
+        try{
+            pets = carregarPets();
+        }catch (ArquivoVazioOuInvalidoException e) {
+            System.out.println(e.getMessage());
+            System.out.println();
         }
-        System.out.println();
         contador.set(1);
         pets.forEach(pet -> System.out.println(contador.getAndIncrement() + pet.resumo()));
     }
 
     private List<Pet> carregarPets() {
-        if (Files.notExists(ArquivosEPerguntas.ARQUIVO_PETS)) {
-            return new ArrayList<>();
+        List<Pet> pets = new ArrayList<>();
+        try{
+            pets = petRepository.carregarPets();
+        }catch (ArquivoVazioOuInvalidoException | IOException e) {
+            System.out.println(e.getMessage());
+            return pets;
         }
-        try(Stream<Path> caminhos = Files.list(ArquivosEPerguntas.ARQUIVO_PETS)) {
-            return caminhos.filter(Files::isRegularFile)
-                    .filter(p -> p.toString().endsWith(".txt"))
-                    .map(this::converterEmPet)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-        }catch (IOException e) {
-            System.err.println("Erro ao listar arquivos de pets: " + e.getMessage());
-            return new ArrayList<>();
-        }catch (RuntimeException e) {
-            System.err.println("Erro ao carregar um pet: " + e.getMessage());
-            return new ArrayList<>();
-        }
-    }
-
-    private Pet converterEmPet(Path path) {
-        List<String> pet;
-        try {
-            pet = Files.readAllLines(path).stream()
-                    .filter(linha -> !linha.trim().isEmpty())
-                    .toList();
-        }catch (IOException e) {
-            throw new RuntimeException("Erro ao ler o arquivo do Pet: " + path, e);
-        }
-
-        if(pet.isEmpty() || pet.size() < 7) {
-            throw new RuntimeException("Erro ao ler o arquivo do Pet: " + path);
-        }
-        String nomeCompleto = extrairValor(pet.getFirst());
-        String[] nomePartes = nomeCompleto.split(" ", 2);
-        String nome = nomePartes[0];
-        String sobrenome = (nomePartes.length > 1) ? nomePartes[1] : ".";
-        String tipo = extrairValor(pet.get(1));
-        String sexo = extrairValor(pet.get(2));
-        String linhaEndereco = extrairValor(pet.get(3));
-        String[] endPartes = linhaEndereco.split(",");
-        String valorIdade = extrairValor(pet.get(4));
-        String idade = (valorIdade.equals(".") || valorIdade.isEmpty()) ? "." : valorIdade.replaceAll("[^0-9.,]", "").replace(",", ".");
-        String valorPeso = extrairValor(pet.get(5));
-        String peso = (valorPeso.equals(".") || valorPeso.isEmpty()) ? "." : valorPeso.replaceAll("[^0-9.,]", "").replace(",", ".");
-        String raca = extrairValor(pet.get(6));
-        Endereco endereco = new Endereco(deixarSeguro(endPartes, 0), deixarSeguro(endPartes, 1), deixarSeguro(endPartes, 2));
-        Pet animal = criarPets(nome, sobrenome, tipo, sexo, idade, peso, raca, endereco);
-        if (animal != null) {
-            animal.setCaminhoArquivo(path);
-        }
-        return animal;
-    }
-
-    private String normalizarCampo(String campo) {
-        return campo.replaceAll("NÃO INFORMADO", ".");
-    }
-
-    private String extrairValor(String linha) {
-        String[] partes = linha.split(" - ", 2);
-        if (partes.length < 2) {
-            return ".";
-        }
-        String valor = partes[1].trim();
-        if (valor.endsWith(",")) {
-            valor = valor.substring(0, valor.length() - 1);
-        }
-        return (valor.equals("NÃO INFORMADO") || valor.isEmpty()) ? "." : valor;
-    }
-
-    private String deixarSeguro(String[] partes, int posicao) {
-        if (posicao < partes.length) {
-            return normalizarCampo(partes[posicao].trim());
-        }
-        return ".";
+        return pets;
     }
 }

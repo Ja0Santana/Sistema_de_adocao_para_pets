@@ -1,11 +1,14 @@
 package com.br.adocao.controller;
 
+import com.br.adocao.model.ArquivoPetRepository;
+import com.br.adocao.model.ArquivosEPerguntas;
+
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
 public class MenuPrincipal {
     private static final Scanner sc = new Scanner(System.in);
-    private static final PetController PetController = new PetController();
+    private static final PetController PetController = new PetController(new ArquivoPetRepository(), new ArquivosEPerguntas());
     private static final FormularioController FormularioController = new FormularioController();
 
     public void informarMenuPrincipal() {

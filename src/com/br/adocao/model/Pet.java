@@ -10,6 +10,7 @@ import com.br.adocao.model.enums.TipoPet;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Pet {
@@ -24,6 +25,7 @@ public class Pet {
     private String raca;
     private Endereco endereco;
     private Path caminhoArquivo;
+    public List<String> informacoesExtras;
 
     public Pet(String nome, String sobrenome, String tipo, String sexo, String idade, String peso, String raca, Endereco endereco) {
         this.setNome(nome);
@@ -34,6 +36,7 @@ public class Pet {
         this.setPeso(peso);
         this.setRaca(raca);
         this.setEndereco(endereco);
+        informacoesExtras = new ArrayList<>();
     }
 
     public String getNome() {
@@ -164,6 +167,14 @@ public class Pet {
 
     public void setCaminhoArquivo(Path caminhoArquivo) {
         this.caminhoArquivo = caminhoArquivo;
+    }
+
+    public List<String> getInformacoesExtras() {
+        return informacoesExtras;
+    }
+
+    public void setInformacoesExtras(List<String> informacoesExtras) {
+        this.informacoesExtras = informacoesExtras;
     }
 
     @Override
